@@ -1,5 +1,5 @@
 {
-    "name": "rickselby/laravel-gate-cache",
+    "name": "alecto1b/laravel-gate-cache",
     "description": "Add a per-request caching layer to Laravel's Gate",
     "minimum-stability": "stable",
     "license": "MIT",
