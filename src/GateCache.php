@@ -4,11 +4,13 @@ namespace RickSelby\Laravel\GateCache;
 
 use Illuminate\Auth\Access\Gate;
 use Illuminate\Contracts\Auth\Access\Gate as GateContract;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Container\Container;
+use Illuminate\Support\Collection;
 
 class GateCache extends Gate implements GateContract
 {
-    /** @var \Illuminate\Support\Collection */
+    /** @var Collection */
     private $rawResults;
 
     /** @var array */
@@ -20,9 +22,18 @@ class GateCache extends Gate implements GateContract
         array $abilities = [],
         array $policies = [],
         array $beforeCallbacks = [],
-        array $afterCallbacks = []
+        array $afterCallbacks = [],
+        ?callable $guessPolicyNamesUsingCallback = null
     ) {
-        parent::__construct($container, $userResolver, $abilities, $policies, $beforeCallbacks, $afterCallbacks);
+        parent::__construct(
+            $container,
+            $userResolver,
+            $abilities,
+            $policies,
+            $beforeCallbacks,
+            $afterCallbacks,
+            $guessPolicyNamesUsingCallback
+        );
 
         $this->rawResults = collect();
     }
@@ -48,7 +59,7 @@ class GateCache extends Gate implements GateContract
     /**
      * Cache each instance of Gate per user...
      *
-     * @param  \Illuminate\Contracts\Auth\Authenticatable|mixed  $user
+     * @param  Authenticatable|mixed  $user
      * @return Gate|GateContract|mixed
      */
     public function forUser($user)
@@ -63,8 +74,6 @@ class GateCache extends Gate implements GateContract
     /**
      * Generate a unique hash for the request.
      *
-     * @param  $ability
-     * @param  $arguments
      * @return string
      */
     protected function getHash($ability, $arguments)

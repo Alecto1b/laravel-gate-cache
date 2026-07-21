@@ -2,66 +2,119 @@
 
 namespace RickSelby\Tests;
 
-use PHPUnit\Framework\MockObject\MockObject;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Contracts\Auth\Authenticatable;
 use RickSelby\Laravel\GateCache\GateCache;
 
 class RawTest extends AbstractPackageTestCase
 {
-    /** @var MockObject */
-    protected $gateMock;
-
-    /** @var GateCache */
-    protected $gateCache;
-
-    /** @test */
-    public function it_calls_parent_only_once_for_the_same_ability()
+    public function test_authorization_callback_is_called_once_for_the_same_ability_and_arguments(): void
     {
-        $this->gateCache->expects($this->once())->method('callAuthCallback');
+        $calls = 0;
+        $gate = $this->gateForUser();
+        $gate->define('update', function (Authenticatable $user, string $post) use (&$calls): string {
+            $calls++;
 
-        $this->gateCache->raw('something');
-        $this->gateCache->raw('something');
+            return 'allowed-'.$post;
+        });
+
+        $this->assertSame('allowed-post-1', $gate->raw('update', ['post-1']));
+        $this->assertSame('allowed-post-1', $gate->raw('update', ['post-1']));
+        $this->assertSame(1, $calls);
     }
 
-    /** @test */
-    public function it_calls_parent_twice_for_different_abilities()
+    public function test_false_results_are_cached(): void
     {
-        $this->gateCache->expects($this->exactly(2))->method('callAuthCallback');
+        $calls = 0;
+        $gate = $this->gateForUser();
+        $gate->define('delete', function (Authenticatable $user) use (&$calls): bool {
+            $calls++;
 
-        $this->gateCache->raw('something');
-        $this->gateCache->raw('somethingelse');
+            return false;
+        });
+
+        $this->assertFalse($gate->raw('delete'));
+        $this->assertFalse($gate->raw('delete'));
+        $this->assertSame(1, $calls);
     }
 
-    /** @test */
-    public function it_calls_parent_only_once_for_the_same_ability_and_arguments()
+    public function test_different_abilities_do_not_share_a_cache_entry(): void
     {
-        $this->gateCache->expects($this->once())->method('callAuthCallback');
+        $calls = 0;
+        $gate = $this->gateForUser();
+        $callback = function (Authenticatable $user) use (&$calls): bool {
+            $calls++;
 
-        $this->gateCache->raw('something', ['this']);
-        $this->gateCache->raw('something', ['this']);
+            return true;
+        };
+        $gate->define('create', $callback);
+        $gate->define('update', $callback);
+
+        $this->assertTrue($gate->raw('create'));
+        $this->assertTrue($gate->raw('update'));
+        $this->assertSame(2, $calls);
     }
 
-    /** @test */
-    public function it_calls_parent_twice_for_different_arguments()
+    public function test_different_arguments_do_not_share_a_cache_entry(): void
     {
-        $this->gateCache->expects($this->exactly(2))->method('callAuthCallback');
+        $calls = 0;
+        $gate = $this->gateForUser();
+        $gate->define('update', function (Authenticatable $user, string $post) use (&$calls): bool {
+            $calls++;
 
-        $this->gateCache->raw('something', ['this']);
-        $this->gateCache->raw('something', ['that']);
+            return true;
+        });
+
+        $this->assertTrue($gate->raw('update', ['post-1']));
+        $this->assertTrue($gate->raw('update', ['post-2']));
+        $this->assertSame(2, $calls);
     }
 
-    public function setUp(): void
+    public function test_common_gate_methods_keep_their_laravel_behavior(): void
     {
-        parent::setUp();
+        $calls = 0;
+        $gate = $this->gateForUser();
+        $gate->define('publish', function (Authenticatable $user) use (&$calls): Response {
+            $calls++;
 
-        $this->gateCache = $this->getMockBuilder(GateCache::class)
-            ->onlyMethods(['callAuthCallback'])
-            ->setConstructorArgs([
-                $this->app,
-                // User Resolver must return true for 5.6
-                function () {
-                    return true;
-                },
-            ])
-            ->getMock();
+            return Response::allow('Publication allowed');
+        });
+
+        $this->assertTrue($gate->allows('publish'));
+        $this->assertFalse($gate->denies('publish'));
+
+        $response = $gate->inspect('publish');
+
+        $this->assertTrue($response->allowed());
+        $this->assertSame('Publication allowed', $response->message());
+        $this->assertSame(1, $calls);
+    }
+
+    public function test_raw_cache_is_isolated_between_gate_instances(): void
+    {
+        $calls = 0;
+        $callback = function (Authenticatable $user) use (&$calls): bool {
+            $calls++;
+
+            return true;
+        };
+
+        $firstGate = $this->gateForUser();
+        $firstGate->define('view', $callback);
+        $secondGate = $this->gateForUser();
+        $secondGate->define('view', $callback);
+
+        $this->assertTrue($firstGate->raw('view'));
+        $this->assertTrue($firstGate->raw('view'));
+        $this->assertTrue($secondGate->raw('view'));
+        $this->assertTrue($secondGate->raw('view'));
+        $this->assertSame(2, $calls);
+    }
+
+    private function gateForUser(): GateCache
+    {
+        $user = $this->createStub(Authenticatable::class);
+
+        return new GateCache($this->app, fn (): Authenticatable => $user);
     }
 }
