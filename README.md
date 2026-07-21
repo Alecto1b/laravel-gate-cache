@@ -1,7 +1,6 @@
 # Laravel Gate Cache
 
 ![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg)
-![Packagist Version](https://img.shields.io/packagist/v/rickselby/laravel-gate-cache)
 
 Laravel Gate Cache adds a caching layer to Laravel's Gate. Within one application lifecycle, an authorization callback is evaluated once for each unique ability and argument combination; later identical checks reuse the result, including denied results.
 
@@ -18,7 +17,7 @@ The compatibility suite covers Laravel 10 through 13 with their matching Orchest
 Install the package with Composer:
 
 ```bash
-composer require rickselby/laravel-gate-cache
+composer require alecto1b/laravel-gate-cache
 ```
 
 Laravel auto-discovers `GateCacheProvider`, which replaces the standard Gate contract binding with `GateCache`.
