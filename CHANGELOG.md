@@ -9,8 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Support for Laravel 13.x.
 - Compatibility coverage for Laravel 10–13, including Laravel 13 on PHP 8.5.
+- An MIT license file preserving the original copyright notice.
 
 ### Changed
+- Renamed the Composer package to `alecto1b/laravel-gate-cache` for the maintained fork while preserving original-author attribution and Git history.
 - Modernized the test suite for PHPUnit 10–12 test discovery.
 - Expanded functional coverage for Gate caching, user instances, application lifecycles, and common authorization methods.
 

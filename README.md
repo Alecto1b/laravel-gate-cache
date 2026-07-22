@@ -17,7 +17,7 @@ The compatibility suite covers Laravel 10 through 13 with their matching Orchest
 Install the package with Composer:
 
 ```bash
-composer require alecto1b/laravel-gate-cache
+composer require alecto1b/laravel-gate-cache:^3.10
 ```
 
 Laravel auto-discovers `GateCacheProvider`, which replaces the standard Gate contract binding with `GateCache`.
@@ -52,6 +52,10 @@ The Gate binding is a singleton in Laravel's application container. In a traditi
 
 If an environment reuses the same application container across requests or jobs, the cache can live for that longer container lifecycle. This package does not currently provide a worker reset hook and does not claim Octane or other long-running-worker isolation; validate and manage that lifecycle before using it in such an environment.
 
+## Attribution
+
+This project is a maintained fork of [rickselby/laravel-gate-cache](https://github.com/rickselby/laravel-gate-cache), originally created by Rick Selby. The original Git history and author attribution are preserved.
+
 ## License
 
-This package is declared as MIT-licensed in [`composer.json`](composer.json).
+This package is open-sourced software licensed under the [MIT License](LICENSE).

@@ -6,9 +6,19 @@
     "authors": [
         {
             "name": "Rick Selby",
-            "email": "rick@selby-family.co.uk"
+            "email": "rick@selby-family.co.uk",
+            "role": "Original Author"
+        },
+        {
+            "name": "Alecto1b",
+            "role": "Maintainer"
         }
     ],
+    "homepage": "https://github.com/Alecto1b/laravel-gate-cache",
+    "support": {
+        "issues": "https://github.com/Alecto1b/laravel-gate-cache/issues",
+        "source": "https://github.com/Alecto1b/laravel-gate-cache"
+    },
     "require": {
         "php": "^8.1",
         "illuminate/auth": "^10.0 || ^11.0 || ^12.0 || ^13.0",
